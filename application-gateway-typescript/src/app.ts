@@ -91,29 +91,61 @@ async function main(): Promise<void> {
 //        await getAllAssets(contract);
         await getUserCount(contract);////
         await createUser0(contract);//
+        await getUserByEmail(contract);
         await getUserCount(contract);//
         await createUser1(contract);//
         await getUserCount(contract);//
         await createUser2(contract);//
         await getUserCount(contract);//
-        await getUser(contract);//
-        await updateEmail(contract);
-        await getUser(contract);//
+        await getUser0(contract);//
         await getProjectCount(contract);
         await createProject(contract);
         await getProjectCount(contract);
         await getProject(contract);
         await getTransactionCount(contract);
-        await createTransaction(contract);
+        await createTransaction1(contract);
+        await createTransaction2(contract);
         await getTransactionCount(contract);
         await getTransaction(contract);
         await getProject(contract);
+        //await validateTransaction(contract);
+        await getTransaction(contract);
+        console.log('_____________');
+        await getProject(contract);
+        await getUser0(contract);//
+        await getUser1(contract);//
+        await getUser2(contract);//
+        /*
+        await addContributor0(contract);
+        await getProject(contract);
+        await getUser0(contract);//
+        await getUser1(contract);//
+        await getUser2(contract);//
+        */
+        await addContributor1(contract);
+        await getProject(contract);
+        await getUser0(contract);//
+        await getUser1(contract);//
+        await getUser2(contract);//
+        await addContributor2(contract);
+        await getProject(contract);
+        await getUser0(contract);//
+        await getUser1(contract);//
+        await getUser2(contract);//
+        await addValidator(contract);
+        await getProject(contract);
+        await getUser0(contract);//
+        await getUser1(contract);//
+        await getUser2(contract);//
         await validateTransaction(contract);
         await getTransaction(contract);
         await getProject(contract);
-        await addContributor(contract);
-        await addValidator(contract);
-        await getProject(contract);
+        await updatePassword(contract);
+        await updateEmail(contract);
+        await getUserByEmailChange(contract);
+        await getUser0(contract);
+        await getUser1(contract);
+        await getUser2(contract);
         
     } finally {
         gateway.close();
@@ -159,19 +191,6 @@ async function init(contract: Contract): Promise<void> {
     console.log('*** Transaction committed successfully');
 }
 
-/**
- * Evaluate a transaction to query ledger state.
- */
-
-async function getAllAssets(contract: Contract): Promise<void> {
-    console.log('\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger');
-
-    const resultBytes = await contract.evaluateTransaction('GetAllAssets');
-
-    const resultJson = utf8Decoder.decode(resultBytes);
-    const result = JSON.parse(resultJson);
-    console.log('*** Result:', result);
-}
 
 /**
  * Submit a transaction synchronously, blocking until it has been committed to the ledger.
@@ -185,7 +204,7 @@ async function createUser0(contract: Contract): Promise<void> {
         'CreateUser',
         'Phillipe',
         'philippe@example.com',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a'
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f'
     );
 
     console.log('*** Transaction committed successfully');
@@ -195,18 +214,31 @@ async function createUser0(contract: Contract): Promise<void> {
 }
 
 async function updateEmail(contract: Contract): Promise<void> {
-    console.log('\n--> Submit Transaction: CreateUser, creates new user');
+    console.log('\n--> Submit Transaction: update Email, Update email of user');
 
     const resultBytes = await contract.submitTransaction(
         'UpdateEmail',
         'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
+        'a20aff106fe011d5dd696e3b7105200ff74331eeb8e865bb80ebd82b12665a07',
         'philippeChange@example.com',
         );
 
     console.log('*** Transaction committed successfully');
-    const result = new TextDecoder().decode(resultBytes);
-    console.log('*** Result:', result);
+
+    
+}
+
+async function updatePassword(contract: Contract): Promise<void> {
+    console.log('\n--> Submit Transaction: updatePassword, update password of user');
+
+    const resultBytes = await contract.submitTransaction(
+        'UpdatePassword',
+        'user0',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
+        'a20aff106fe011d5dd696e3b7105200ff74331eeb8e865bb80ebd82b12665a07',
+        );
+
+    console.log('*** Transaction committed successfully');
     
 }
 
@@ -218,7 +250,7 @@ async function createUser1(contract: Contract): Promise<void> {
         'CreateUser',
         'Guy',
         'guy@example.com',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a'
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f'
     );
 
     console.log('*** Transaction committed successfully');
@@ -233,7 +265,7 @@ async function createUser2(contract: Contract): Promise<void> {
         'CreateUser',
         'Satoshi Nakamoto',
         'sat@example.com',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a'
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f'
     );
 
     console.log('*** Transaction committed successfully');
@@ -252,9 +284,7 @@ async function createProject(contract: Contract): Promise<void> {
         '1704067200',
         'Example description',
         'user0',
-        'user0,user1,user2',
-        'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
         '1688516687'
     );
 
@@ -263,14 +293,30 @@ async function createProject(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function createTransaction(contract: Contract): Promise<void> {
+async function createTransaction1(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Create transaction');
 
     const resultBytes = await contract.submitTransaction(
         'CreateTransaction',
         'project0',
         'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
+        '{"time":"1 hour"}',
+        '1688516687'
+    );
+
+    console.log('*** Transaction committed successfully');
+    const result = new TextDecoder().decode(resultBytes);
+    console.log('*** Result:', result);
+}
+async function createTransaction2(contract: Contract): Promise<void> {
+    console.log('\n--> Submit Transaction: Create transaction');
+
+    const resultBytes = await contract.submitTransaction(
+        'CreateTransaction',
+        'project0',
+        'user0',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
         '{"time":"1 hour"}',
         '1688516687'
     );
@@ -286,32 +332,57 @@ async function validateTransaction(contract: Contract): Promise<void> {
         'ValidateTransaction',
         'transaction0',
         'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
         '1688516687'
     );
 
     console.log('*** Transaction committed successfully');
 }
 async function addValidator(contract: Contract): Promise<void> {
-    console.log('\n--> Submit Transaction: Contributor added');
+    console.log('\n--> Submit Transaction: Validator added');
     await contract.submitTransaction(
         'AddValidator',
         'project0',
         'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
         'user2'
     );
 
     console.log('*** Transaction committed successfully');
 }
 
-async function addContributor(contract: Contract): Promise<void> {
+async function addContributor0(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Contributor added');
     await contract.submitTransaction(
         'AddContributor',
         'project0',
         'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
+        'user0'
+    );
+
+    console.log('*** Transaction committed successfully');
+}
+async function addContributor1(contract: Contract): Promise<void> {
+    console.log('\n--> Submit Transaction: Contributor added');
+    await contract.submitTransaction(
+        'AddContributor',
+        'project0',
+        'user0',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
+        'user1'
+    );
+
+    console.log('*** Transaction committed successfully');
+}
+
+async function addContributor2(contract: Contract): Promise<void> {
+    console.log('\n--> Submit Transaction: Contributor added');
+    await contract.submitTransaction(
+        'AddContributor',
+        'project0',
+        'user0',
+        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
         'user2'
     );
 
@@ -334,9 +405,42 @@ async function getUserCount(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function getUser(contract: Contract): Promise<void> {
+async function getUser0(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetUser, function returns user attributes');
     const resultBytes = await contract.evaluateTransaction('GetUser', 'user0');
+    const resultJson = utf8Decoder.decode(resultBytes);
+    const result = JSON.parse(resultJson);
+    console.log('*** Result:', result);
+}
+
+
+async function getUserByEmail(contract: Contract): Promise<void> {
+    console.log('\n--> Evaluate Transaction: GetUserByEmail, function returns user');
+    const resultBytes = await contract.evaluateTransaction('GetUserByEmail', 'philippe@example.com');
+    const resultJson = utf8Decoder.decode(resultBytes);
+    //const result = JSON.parse(resultJson);
+    console.log('*** Result:', resultJson);
+}
+
+async function getUserByEmailChange(contract: Contract): Promise<void> {
+    console.log('\n--> Evaluate Transaction: GetUserByEmail, function returns user');
+    const resultBytes = await contract.evaluateTransaction('GetUserByEmail', 'philippeChange@example.com');
+    const resultJson = utf8Decoder.decode(resultBytes);
+    //const result = JSON.parse(resultJson);
+    console.log('*** Result:', resultJson);
+}
+
+async function getUser1(contract: Contract): Promise<void> {
+    console.log('\n--> Evaluate Transaction: GetUser, function returns user attributes');
+    const resultBytes = await contract.evaluateTransaction('GetUser', 'user1');
+    const resultJson = utf8Decoder.decode(resultBytes);
+    const result = JSON.parse(resultJson);
+    console.log('*** Result:', result);
+}
+
+async function getUser2(contract: Contract): Promise<void> {
+    console.log('\n--> Evaluate Transaction: GetUser, function returns user attributes');
+    const resultBytes = await contract.evaluateTransaction('GetUser', 'user2');
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
     console.log('*** Result:', result);
@@ -359,7 +463,7 @@ async function getTransactionCount(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 async function getProject(contract: Contract): Promise<void> {
-    console.log('\n--> Evaluate Transaction: GetUser, function returns project attributes');
+    console.log('\n--> Evaluate Transaction: GetProject, function returns project attributes');
     const resultBytes = await contract.evaluateTransaction('GetProject', 'project0');
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
@@ -367,7 +471,7 @@ async function getProject(contract: Contract): Promise<void> {
 }
 
 async function getTransaction(contract: Contract): Promise<void> {
-    console.log('\n--> Evaluate Transaction: Gettransaction, function returns txn attributes');
+    console.log('\n--> Evaluate Transaction: GetTransaction, function returns txn attributes');
     const resultBytes = await contract.evaluateTransaction('GetTransaction', 'transaction0');
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
