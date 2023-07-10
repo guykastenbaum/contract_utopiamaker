@@ -10,6 +10,7 @@ import * as crypto from 'crypto';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { TextDecoder } from 'util';
+import { createHash } from 'crypto';
 
 const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
 const chaincodeName = envOrDefault('CHAINCODE_NAME', 'utopiamaker');
@@ -36,7 +37,7 @@ const peerHostAlias = envOrDefault('PEER_HOST_ALIAS', 'peer0.org1.example.com');
 const utf8Decoder = new TextDecoder();
 const assetId = `user${Date.now()}`;
 
-async function main(): Promise<void> {
+export async function main(): Promise<any> {
 
     await displayInputParameters();
 
@@ -70,7 +71,7 @@ async function main(): Promise<void> {
         const contract = network.getContract(chaincodeName);
 
         // Initialize a set of asset data on the ledger using the chaincode 'InitLedger' function.
-        await init(contract);
+        // await init(contract);
 
         // Return all the current assets on the ledger.
         //await getAllAssets(contract);
@@ -86,47 +87,47 @@ async function main(): Promise<void> {
 
         // Update an asset which does not exist.
         //await updateNonExistentAsset(contract)
-        await getInitStatus(contract);//
+        // await getInitStatus(contract);//
 //        await getA(contract);
 //        await getAllAssets(contract);
-        await getUserCount(contract);////
-        await createUser0(contract);//
-        await getUserCount(contract);//
-        await createUser1(contract);//
-        await getUserCount(contract);//
-        await createUser2(contract);//
-        await getUserCount(contract);//
-        await getUser(contract);//
-        await updateEmail(contract);
-        await getUser(contract);//
-        await getProjectCount(contract);
-        await createProject(contract);
-        await getProjectCount(contract);
-        await getProject(contract);
-        await getTransactionCount(contract);
-        await createTransaction(contract);
-        await getTransactionCount(contract);
-        await getTransaction(contract);
-        await getProject(contract);
-        await validateTransaction(contract);
-        await getTransaction(contract);
-        await getProject(contract);
-        await addContributor(contract);
-        await addValidator(contract);
-        await getProject(contract);
-        
+        // await getUserCount(contract);////
+        // await createUser0(contract);//
+        // await getUserCount(contract);//
+        // await createUser1(contract);//
+        // await getUserCount(contract);//
+        // await createUser2(contract);//
+        // await getUserCount(contract);//
+        // await getUser(contract);//
+        // await updateEmail(contract);
+        // await getUser(contract);//
+        // await getProjectCount(contract);
+        // await createProject(contract);
+        // await getProjectCount(contract);
+        // await getProject(contract);
+        // await getTransactionCount(contract);
+        // await createTransaction(contract);
+        // await getTransactionCount(contract);
+        // await getTransaction(contract);
+        // await getProject(contract);
+        // await validateTransaction(contract);
+        // await getTransaction(contract);
+        // await getProject(contract);
+        // await addContributor(contract);
+        // await addValidator(contract);
+        // await getProject(contract);
+        return contract;
     } finally {
-        gateway.close();
-        client.close();
+        // gateway.close();
+        // client.close();
     }
 }
 
-main().catch(error => {
-    console.error('******** FAILED to run the application:', error);
-    process.exitCode = 1;
-});
+// main().catch(error => {
+//     console.error('******** FAILED to run the application:', error);
+//     process.exitCode = 1;
+// });
 
-async function newGrpcConnection(): Promise<grpc.Client> {
+export async function newGrpcConnection(): Promise<grpc.Client> {
     const tlsRootCert = await fs.readFile(tlsCertPath);
     const tlsCredentials = grpc.credentials.createSsl(tlsRootCert);
     return new grpc.Client(peerEndpoint, tlsCredentials, {
@@ -134,12 +135,12 @@ async function newGrpcConnection(): Promise<grpc.Client> {
     });
 }
 
-async function newIdentity(): Promise<Identity> {
+export async function newIdentity(): Promise<Identity> {
     const credentials = await fs.readFile(certPath);
     return { mspId, credentials };
 }
 
-async function newSigner(): Promise<Signer> {
+export async function newSigner(): Promise<Signer> {
     const files = await fs.readdir(keyDirectoryPath);
     const keyPath = path.resolve(keyDirectoryPath, files[0]);
     const privateKeyPem = await fs.readFile(keyPath);
@@ -151,7 +152,7 @@ async function newSigner(): Promise<Signer> {
  * This type of transaction would typically only be run once by an application the first time it was started after its
  * initial deployment. A new version of the chaincode deployed later would likely not need to run an "init" function.
  */
-async function init(contract: Contract): Promise<void> {
+export async function init(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Init');
 
     await contract.submitTransaction('Init');
@@ -162,8 +163,7 @@ async function init(contract: Contract): Promise<void> {
 /**
  * Evaluate a transaction to query ledger state.
  */
-
-async function getAllAssets(contract: Contract): Promise<void> {
+export async function getAllAssets(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetAllAssets, function returns all the current assets on the ledger');
 
     const resultBytes = await contract.evaluateTransaction('GetAllAssets');
@@ -176,25 +176,23 @@ async function getAllAssets(contract: Contract): Promise<void> {
 /**
  * Submit a transaction synchronously, blocking until it has been committed to the ledger.
  */
-
-
-async function createUser0(contract: Contract): Promise<void> {
+export async function createUser(contract: Contract, user: { name: string, email: string, password: string}): Promise<any> {
     console.log('\n--> Submit Transaction: CreateUser, creates new user');
 
     const resultBytes = await contract.submitTransaction(
         'CreateUser',
-        'Phillipe',
-        'philippe@example.com',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a'
+        user.name,
+        user.email,
+        sha256Hash(user.password),
     );
 
     console.log('*** Transaction committed successfully');
     const result = new TextDecoder().decode(resultBytes);
     console.log('*** Result:', result);
-    
+    return result;
 }
 
-async function updateEmail(contract: Contract): Promise<void> {
+export async function updateEmail(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: CreateUser, creates new user');
 
     const resultBytes = await contract.submitTransaction(
@@ -210,52 +208,21 @@ async function updateEmail(contract: Contract): Promise<void> {
     
 }
 
-
-async function createUser1(contract: Contract): Promise<void> {
-    console.log('\n--> Submit Transaction: CreateUser, creates new user');
-
-    const resultBytes = await contract.submitTransaction(
-        'CreateUser',
-        'Guy',
-        'guy@example.com',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a'
-    );
-
-    console.log('*** Transaction committed successfully');
-    const result = new TextDecoder().decode(resultBytes);
-    console.log('*** Result:', result);
-    
-}
-async function createUser2(contract: Contract): Promise<void> {
-    console.log('\n--> Submit Transaction: CreateUser, creates new user');
-
-    const resultBytes = await contract.submitTransaction(
-        'CreateUser',
-        'Satoshi Nakamoto',
-        'sat@example.com',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a'
-    );
-
-    console.log('*** Transaction committed successfully');
-    const result = new TextDecoder().decode(resultBytes);
-    console.log('*** Result:', result);
-    
-}
-
-async function createProject(contract: Contract): Promise<void> {
+export async function createProject(contract: Contract, project: {projectId: string, creationTimestamp: string, startTimestamp: string, description: string, ownerId: string, members: string, validators: string, ownerPass: string, finishTimestamp: string}): Promise<void> {
     console.log('\n--> Submit Transaction: CreateProject');
+    console.log('\n'+JSON.stringify(project));
 
     const resultBytes = await contract.submitTransaction(
         'CreateProject',
-        'project one',
-        '1672531200',
-        '1704067200',
-        'Example description',
-        'user0',
-        'user0,user1,user2',
-        'user0',
-        '57db1253b68b6802b59a969f750fa32b60cb5cc8a3cb19b87dac28f541dc4e2a',
-        '1688516687'
+        project.projectId,
+        project.creationTimestamp,
+        project.startTimestamp,
+        project.description,
+        project.ownerId,
+        project.members,
+        project.validators,
+        sha256Hash(project.ownerPass),
+        project.finishTimestamp
     );
 
     console.log('*** Transaction committed successfully');
@@ -263,7 +230,7 @@ async function createProject(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function createTransaction(contract: Contract): Promise<void> {
+export async function createTransaction(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Create transaction');
 
     const resultBytes = await contract.submitTransaction(
@@ -280,7 +247,7 @@ async function createTransaction(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function validateTransaction(contract: Contract): Promise<void> {
+export async function validateTransaction(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Validate txn');
     await contract.submitTransaction(
         'ValidateTransaction',
@@ -292,7 +259,8 @@ async function validateTransaction(contract: Contract): Promise<void> {
 
     console.log('*** Transaction committed successfully');
 }
-async function addValidator(contract: Contract): Promise<void> {
+
+export async function addValidator(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Contributor added');
     await contract.submitTransaction(
         'AddValidator',
@@ -305,7 +273,7 @@ async function addValidator(contract: Contract): Promise<void> {
     console.log('*** Transaction committed successfully');
 }
 
-async function addContributor(contract: Contract): Promise<void> {
+export async function addContributor(contract: Contract): Promise<void> {
     console.log('\n--> Submit Transaction: Contributor added');
     await contract.submitTransaction(
         'AddContributor',
@@ -318,15 +286,16 @@ async function addContributor(contract: Contract): Promise<void> {
     console.log('*** Transaction committed successfully');
 }
 
-async function getInitStatus(contract: Contract): Promise<void> {
+export async function getInitStatus(contract: Contract): Promise<any> {
     console.log('\n--> Evaluate Transaction: GetInitState, function returns contract status');
     const resultBytes = await contract.evaluateTransaction('GetInitStatus');
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
     console.log('*** Result:', result);
+    return result.status;
 }
 
-async function getUserCount(contract: Contract): Promise<void> {
+export async function getUserCount(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetUserCount, function returns user count');
     const resultBytes = await contract.evaluateTransaction('GetUserCount');
     const resultJson = utf8Decoder.decode(resultBytes);
@@ -334,7 +303,7 @@ async function getUserCount(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function getUser(contract: Contract): Promise<void> {
+export async function getUser(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetUser, function returns user attributes');
     const resultBytes = await contract.evaluateTransaction('GetUser', 'user0');
     const resultJson = utf8Decoder.decode(resultBytes);
@@ -342,7 +311,7 @@ async function getUser(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function getProjectCount(contract: Contract): Promise<void> {
+export async function getProjectCount(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetProjectCount, function returns projects count');
     const resultBytes = await contract.evaluateTransaction('GetProjectCount');
     const resultJson = utf8Decoder.decode(resultBytes);
@@ -350,15 +319,15 @@ async function getProjectCount(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-
-async function getTransactionCount(contract: Contract): Promise<void> {
+export async function getTransactionCount(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetTransactionCount, function returns transactions count');
     const resultBytes = await contract.evaluateTransaction('GetTransactionCount');
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
     console.log('*** Result:', result);
 }
-async function getProject(contract: Contract): Promise<void> {
+
+export async function getProject(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: GetUser, function returns project attributes');
     const resultBytes = await contract.evaluateTransaction('GetProject', 'project0');
     const resultJson = utf8Decoder.decode(resultBytes);
@@ -366,15 +335,13 @@ async function getProject(contract: Contract): Promise<void> {
     console.log('*** Result:', result);
 }
 
-async function getTransaction(contract: Contract): Promise<void> {
+export async function getTransaction(contract: Contract): Promise<void> {
     console.log('\n--> Evaluate Transaction: Gettransaction, function returns txn attributes');
     const resultBytes = await contract.evaluateTransaction('GetTransaction', 'transaction0');
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
     console.log('*** Result:', result);
 }
-
-
 
 /**
  * envOrDefault() will return the value of an environment variable, or a default value if the variable is undefined.
@@ -386,7 +353,7 @@ function envOrDefault(key: string, defaultValue: string): string {
 /**
  * displayInputParameters() will print the global scope parameters used by the main driver routine.
  */
-async function displayInputParameters(): Promise<void> {
+export async function displayInputParameters(): Promise<void> {
     console.log(`channelName:       ${channelName}`);
     console.log(`chaincodeName:     ${chaincodeName}`);
     console.log(`mspId:             ${mspId}`);
@@ -397,3 +364,13 @@ async function displayInputParameters(): Promise<void> {
     console.log(`peerEndpoint:      ${peerEndpoint}`);
     console.log(`peerHostAlias:     ${peerHostAlias}`);
 }
+
+
+//HELPER FUNCTIONS
+function sha256Hash(input: string): string {
+  const hash = createHash('sha256');
+  hash.update(input);
+  return hash.digest('hex');
+}
+
+export default main;
