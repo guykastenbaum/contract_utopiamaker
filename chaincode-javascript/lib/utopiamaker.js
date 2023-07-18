@@ -456,6 +456,7 @@ class Utopiamaker extends Contract {
             projectsContributor: query.contributors,
             projectsValidator: query.projectsValidator
         };*/
+        query.password = "";
         return query.toString();
     }  
 
