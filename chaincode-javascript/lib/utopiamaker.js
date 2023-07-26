@@ -27,6 +27,8 @@ async function readState(ctx, id) {
 function onlyUnique(value, index, array) {
     return array.indexOf(value) === index;
 }
+
+
   
 
 
@@ -119,7 +121,8 @@ class Utopiamaker extends Contract {
             contributors: [creatorId],
             validators: [creatorId],
             assets:[],
-            transactions: []
+            transactions: [],
+            requestUsers: []
         };
         creatorData.projectsCreator.push(id);
         creatorData.projectsContributor.push(id);
@@ -246,8 +249,6 @@ class Utopiamaker extends Contract {
         userData.password = newPassword;
         await ctx.stub.putState(userId, JSON.stringify(userData));
     }
-
-
 
 
     async ValidateTransaction(ctx, transactionId, userId, password, timestamp) {
@@ -422,6 +423,128 @@ class Utopiamaker extends Contract {
         await ctx.stub.putState(validatorId, JSON.stringify(validatorData));
     }
 
+
+    async sendRequest(ctx, projectId, userId, password, timestamp){
+        const queryUserCount = await ctx.stub.getState('userCount');
+        const userCountInt = parseInt(queryUserCount.count);
+        const userData = await readState(ctx, userId);
+        if(userId.substring(0,4) != "user"){
+            throw new Error('Wrong syntaxis of user');
+        }
+        if(isNaN(parseInt(userId.substring(4))) ){
+            throw new Error('Wrong syntaxis of user');
+        }
+        if(userCountInt < parseInt(userId.substring(4))){
+            throw new Error('User doesnt exist');
+        }
+        if(userData.password != password){
+            throw new Error('Wrong password');
+        }
+        const queryProjectCount = await ctx.stub.getState('projectCount');
+        const projectCountInt = parseInt(queryProjectCount.count);
+        var projectData = await readState(ctx, projectId);
+        if(projectId.substring(0,7) != "project"){
+            throw new Error('Wrong syntaxis of project');
+        }
+        if(isNaN(parseInt(projectId.substring(7))) ){
+            throw new Error('Wrong syntaxis of project');
+        }
+        if(projectCountInt < parseInt(projectId.substring(7))){
+            throw new Error('Project doesnt exist');
+        }
+        if(timestamp < projectData.endDate || timestamp > projectData.startDate){
+            throw new Error('Out of time for project');
+        }
+
+        if(projectData.requestUsers.find(e=> e.user==userId)!==undefined){
+            throw new Error('Alredy the user has sent one request');
+        }
+        const request = {
+            user: userId,
+            value: false
+        };
+        projectData.requestUsers.push(request);
+    }
+
+    async approveRequest(ctx, projectId, userId, contributorId ,password, timestamp){
+        const queryUserCount = await ctx.stub.getState('userCount');
+        const userCountInt = parseInt(queryUserCount.count);
+        const userData = await readState(ctx, userId);
+        if(userId.substring(0,4) != "user"){
+            throw new Error('Wrong syntaxis of user');
+        }
+        if(isNaN(parseInt(userId.substring(4))) ){
+            throw new Error('Wrong syntaxis of user');
+        }
+        if(userCountInt < parseInt(userId.substring(4))){
+            throw new Error('User doesnt exist');
+        }
+        if(userData.password != password){
+            throw new Error('Wrong password');
+        }
+        if(contributorId.substring(0,4) != "user"){
+            throw new Error('Wrong syntaxis of contributor');
+        }
+        if(isNaN(parseInt(contributorId.substring(4))) ){
+            throw new Error('Wrong syntaxis of contributor');
+        }
+        if(userCountInt < parseInt(contributorId.substring(4))){
+            throw new Error('Contributor doesnt exist');
+        }
+        const queryProjectCount = await ctx.stub.getState('projectCount');
+        const projectCountInt = parseInt(queryProjectCount.count);
+        var projectData = await readState(ctx, projectId);
+        if(projectId.substring(0,7) != "project"){
+            throw new Error('Wrong syntaxis of project');
+        }
+        if(isNaN(parseInt(projectId.substring(7))) ){
+            throw new Error('Wrong syntaxis of project');
+        }
+        if(projectCountInt < parseInt(projectId.substring(7))){
+            throw new Error('Project doesnt exist');
+        }
+        let checkValidator = false;
+        projectData.validators.every(element => {
+            if(element == userId){
+                checkValidator = true;
+                return false;
+            }
+        });
+        if(!checkValidator){
+            throw new Error('You are not a validator');
+        }
+        projectData.contributors.forEach(element => {
+            if(element == contributorId){
+                throw new Error('The contributor yet exists');
+            }
+        });
+
+        if(projectData.requestUsers.find(e=> e.user==userId)===undefined){
+            throw new Error('The request doesnt exist');
+        }
+        projectData.contributors.push(contributorId);
+        projectData.contributors = projectData.contributors.filter(onlyUnique);
+        projectData.requestUsers.find(e=> e.user==userId).value = true;
+        await ctx.stub.putState(projectData.id, JSON.stringify(projectData));
+        var contributorData = await readState(ctx, contributorId);
+        contributorData.projectsContributor.push(projectId);
+        await ctx.stub.putState(contributorId, JSON.stringify(contributorData));
+
+
+    }
+
+    async checkPassword(ctx, id, password){
+        if(id.substring(0,4) != "user"){
+            throw new Error('Wrong syntaxis of user');
+        }
+        var query = await ctx.stub.getState(id);
+        if (query.password == password){
+            return true;
+        } else {
+            return false;
+        };       
+    }
+
     async GetInitStatus(ctx) {
         const query = await ctx.stub.getState('initialized');
         return query.toString();
@@ -456,6 +579,7 @@ class Utopiamaker extends Contract {
             projectsContributor: query.contributors,
             projectsValidator: query.projectsValidator
         };*/
+        query.password = "";
         return query.toString();
     }  
 
