@@ -86,7 +86,7 @@ class Utopiamaker extends Contract {
         if(name == "" || description == ""){
             throw new Error('Name and description cannot be empty');
         }
-        if(timestamp < startDate || startDate < endDate || endDate < 1924992000){
+        if(timestamp < startDate || startDate > endDate || endDate < 1924992000){
             throw new Error('Dates are not valid');
         }
         const queryUserCount = await ctx.stub.getState('userCount');
