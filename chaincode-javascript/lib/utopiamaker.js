@@ -163,7 +163,7 @@ class Utopiamaker extends Contract {
         if(projectCountInt < parseInt(projectId.substring(7))){
             throw new Error('Project doesnt exist');
         }
-        if(timestamp < projectData.endDate || timestamp > projectData.startDate){
+        if(timestamp > projectData.endDate || timestamp < projectData.startDate){
             throw new Error('Out of time for project');
         }
         let checkContributor = false;
@@ -174,9 +174,9 @@ class Utopiamaker extends Contract {
                 return false;
             }
         });
-        if(!checkContributor){
-            throw new Error('You are not a contributor');
-        }
+        // if(!checkContributor){
+        //     throw new Error('You are not a contributor');
+        // }
         var currentCount = await readState(ctx, 'transactionCount');
         const newCount = parseInt(currentCount.count)+1;
         const id = 'transaction'.concat(currentCount.count);

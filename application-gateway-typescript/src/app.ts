@@ -229,31 +229,32 @@ export async function createProject(contract: Contract, project: {name: string, 
     return result;
 }
 
-export async function createTransaction(contract: Contract): Promise<void> {
+export async function createTransaction(contract: Contract, transaction: {projectId: string, userId: string, userPass: string, assets: string, timestamp: string}): Promise<any> {
     console.log('\n--> Submit Transaction: Create transaction');
 
     const resultBytes = await contract.submitTransaction(
         'CreateTransaction',
-        'project0',
-        'user0',
-        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
-        '{"time":"1 hour"}',
-        '1688516687'
+        transaction.projectId,
+        transaction.userId,
+        sha256Hash(transaction.userPass),
+        transaction.assets,
+        transaction.timestamp
     );
 
     console.log('*** Transaction committed successfully');
     const result = new TextDecoder().decode(resultBytes);
     console.log('*** Result:', result);
+    return result;
 }
 
-export async function validateTransaction(contract: Contract): Promise<void> {
+export async function validateTransaction(contract: Contract, transaction: {transactionId : string, validatorId: string, validatorPass: string, timestamp: string}): Promise<void> {
     console.log('\n--> Submit Transaction: Validate txn');
     await contract.submitTransaction(
         'ValidateTransaction',
-        'transaction0',
-        'user0',
-        'ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f',
-        '1688516687'
+        transaction.transactionId,
+        transaction.validatorId,
+        sha256Hash(transaction.validatorPass),
+        transaction.timestamp
     );
 
     console.log('*** Transaction committed successfully');
@@ -352,12 +353,13 @@ export async function getProject(contract: Contract, projectId: string): Promise
     return result;
 }
 
-export async function getTransaction(contract: Contract): Promise<void> {
+export async function getTransaction(contract: Contract, transactionId: string): Promise<any> {
     console.log('\n--> Evaluate Transaction: GetTransaction, function returns txn attributes');
-    const resultBytes = await contract.evaluateTransaction('GetTransaction', 'transaction0');
+    const resultBytes = await contract.evaluateTransaction('GetTransaction', transactionId);
     const resultJson = utf8Decoder.decode(resultBytes);
     const result = JSON.parse(resultJson);
     console.log('*** Result:', result);
+    return result;
 }
 
 /**

@@ -4,14 +4,12 @@ const bodyParser = require('body-parser');
 const urlEncodedParser = bodyParser.urlencoded();
 const jsonParser = bodyParser.json();
 
-const { main, getUserCount, getInitStatus, createUser, getUser, createProject, getProjectCount, getProject } = require('../../dist/app.js');
+const { getInitStatus, getUser, createProject, getProjectCount, getProject } = require('../../dist/app.js');
 
 router.post('/create', jsonParser, async (req, res) =>{
     var contract = req.app.locals.contract;
     const {name, creation, startDate, description, ownerId, ownerPass, endDate} = req.body;
     if(await getInitStatus(contract)){
-      // await createProject(contract);
-      let projectCount = await getProjectCount(contract);
       let newProject = {
         name : name,
         creation: creation,
@@ -21,8 +19,16 @@ router.post('/create', jsonParser, async (req, res) =>{
         ownerPass: ownerPass,
         endDate: endDate
       };
-      let projectId = await createProject(contract, newProject);
-      res.status(200).send({projectId: projectId});
+      console.log(newProject);
+      let error = null;
+      let projectId = await createProject(contract, newProject).catch((err) => {
+        error = err;
+      });
+      if(projectId && !error){
+        res.status(200).send({projectId: projectId});
+      }else{
+        res.status(400).send({error})
+      }
     }else{
       res.status(400).send('Error');
     }
@@ -38,5 +44,46 @@ router.get('/:projectId', async (req, res) => {
         res.status(400).send('Error');
     }
 });
+
+router.get('/user/:userId', async (req, res) => {
+    var contract = req.app.locals.contract;
+    const userId = req.params.userId;
+    var projects = {
+        projectsCreator: [],
+        projectsContributor: [],
+        projectsValidator: [],
+    }
+    if(await getInitStatus(contract)){
+        let user = await getUser(contract, userId);
+        console.log(user)
+        const projectContributorPromises = user.projectsContributor.map(async (element) => {
+            console.log(element);
+            let prj = await getProject(contract, element);
+            return prj;
+        });
+
+        console.log("===================");
+
+        const projectValidatorPromises = user.projectsValidator.map(async (element) => {
+            console.log(element);
+            let prj = await getProject(contract, element);
+            return prj;
+        });
+        console.log("===================");
+        
+        const projectCreatorPromises = user.projectsCreator.map(async (element) => {
+            console.log(element);
+            let prj = await getProject(contract, element);
+            return prj;
+        });
+
+        projects.projectsContributor = await Promise.all(projectContributorPromises);
+        projects.projectsValidator = await Promise.all(projectValidatorPromises);
+        projects.projectsCreator = await Promise.all(projectCreatorPromises);
+        res.status(200).send(projects);
+    }else{
+        res.status(400).send('Error');
+    }
+})
 
 module.exports = router;

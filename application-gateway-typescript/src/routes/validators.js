@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const urlEncodedParser = bodyParser.urlencoded();
 const jsonParser = bodyParser.json();
 
-const { main, getInitStatus, addContributor, sha256Hash, getUserByEmail, getUser, addValidator} = require('../../dist/app.js');
+const { main, getInitStatus, addContributor, sha256Hash, getUserByEmail, getUser, addValidator, validateTransaction} = require('../../dist/app.js');
 
 
 router.post('/add', jsonParser, async (req, res) =>{
@@ -31,6 +31,20 @@ router.post('/add', jsonParser, async (req, res) =>{
     }else{
       res.status(500).send('Error'); 
     }
+})
+
+router.post('/validate', jsonParser, async (req, res) => {
+  var contract = req.app.locals.contract;
+  const {transactionId, validatorId, validatorPass, timestamp} = req.body;
+  if(await getInitStatus(contract)){
+    await validateTransaction(contract, {transactionId,validatorId,validatorPass,timestamp}).then((response) => {
+      res.status(200).send({response})
+    }).catch((error) => {
+      res.status(400).send({error})
+    });
+  }else{
+    res.status(500).send('Error'); 
+  }
 })
 
 module.exports = router
