@@ -38,11 +38,13 @@ router.get('/:userId', async (req, res) => {
     var contract = req.app.locals.contract;
     const userId = req.params.userId;
     if(await getInitStatus(contract)){
-      // var count = await getUserCount(contract);
-      let user = await getUser(contract, userId).catch((error) => {
+      let error = null;
+      let user = await getUser(contract, userId).catch((err) => {error = err});
+      if(user && !error){
+       res.status(200).send(user);
+      }else{
         res.status(204).send({message: error.message});
-      });
-      if(user) res.status(200).send(user);
+      }
     }else{
       res.status(500).send('Error'); 
     }
@@ -52,7 +54,6 @@ router.post('/get', jsonParser, async (req, res) =>{
     var contract = req.app.locals.contract;
     const {email} = req.body;
     if(await getInitStatus(contract)){
-      // var count = await getUserCount(contract);
       let userId = await getUserByEmail(contract, email).catch((error) => {
         res.status(204).send({message: error.message});
       });

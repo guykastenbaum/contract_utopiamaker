@@ -15,8 +15,9 @@ app.use(cors());
 var contract;
 
 async function getContract(){
-  contract = await main();
-  app.locals.contract = contract;
+  let error = null;
+  contract = await main().catch((err) => error = err);
+  if(contract && !error) app.locals.contract = contract;
 }
 
 getContract();

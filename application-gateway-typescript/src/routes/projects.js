@@ -19,7 +19,6 @@ router.post('/create', jsonParser, async (req, res) =>{
         ownerPass: ownerPass,
         endDate: endDate
       };
-      console.log(newProject);
       let error = null;
       let projectId = await createProject(contract, newProject).catch((err) => {
         error = err;
@@ -38,8 +37,13 @@ router.get('/:projectId', async (req, res) => {
     let projectId = req.params.projectId;
     var contract = req.app.locals.contract;
     if(await getInitStatus(contract)){
-        let project = await getProject(contract, projectId);
-        res.status(200).send(project);
+        let error = null;
+        let project = await getProject(contract, projectId).catch(err => error = err);
+        if(project && !error){
+          res.status(200).send(project);
+        }else{
+          res.status(404).send(error);
+        }
     }else{
         res.status(400).send('Error');
     }
@@ -54,27 +58,37 @@ router.get('/user/:userId', async (req, res) => {
         projectsValidator: [],
     }
     if(await getInitStatus(contract)){
-        let user = await getUser(contract, userId);
-        console.log(user)
+        let userError = null;
+        let user = await getUser(contract, userId).catch(err => userError = err);
         const projectContributorPromises = user.projectsContributor.map(async (element) => {
-            console.log(element);
-            let prj = await getProject(contract, element);
-            return prj;
+            let prjError = null;
+            let prj = await getProject(contract, element).catch(err => prjError = err);
+            if(prj && !prjError){
+              return prj;
+            }else{
+              return null;
+            }
         });
 
-        console.log("===================");
-
         const projectValidatorPromises = user.projectsValidator.map(async (element) => {
-            console.log(element);
-            let prj = await getProject(contract, element);
+          let prjError = null;
+          let prj = await getProject(contract, element).catch(err => prjError = err);
+          if(prj && !prjError){
             return prj;
+          }else{
+            return null;
+          }
         });
         console.log("===================");
         
         const projectCreatorPromises = user.projectsCreator.map(async (element) => {
-            console.log(element);
-            let prj = await getProject(contract, element);
+          let prjError = null;
+          let prj = await getProject(contract, element).catch(err => prjError = err);
+          if(prj && !prjError){
             return prj;
+          }else{
+            return null;
+          }
         });
 
         projects.projectsContributor = await Promise.all(projectContributorPromises);
