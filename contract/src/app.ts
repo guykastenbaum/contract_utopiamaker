@@ -152,10 +152,11 @@ export async function newGrpcConnection(): Promise<grpc.Client> {
     console.log('tlsCredentials:'+var_dump(tlsCredentials));
     console.log('peerEndpoint:'+var_dump(peerEndpoint));
     console.log('peerHostAlias:'+var_dump(peerHostAlias));
-    console.log('grpc='+var_dump(grpc));
-    var grpc = new grpc.Client(peerEndpoint, tlsCredentials, {
+    //var grpclient:Promise<grpc.Client>  = new grpc.Client(peerEndpoint, tlsCredentials, {
+    var grpclient  = new grpc.Client(peerEndpoint, tlsCredentials, {
         'grpc.ssl_target_name_override': peerHostAlias });
-    return(grpc);
+    console.log('grpclient='+var_dump(grpclient));
+    return(grpclient);
     //return new grpc.Client(peerEndpoint, tlsCredentials, {
     //    'grpc.ssl_target_name_override': peerHostAlias, });
 }
