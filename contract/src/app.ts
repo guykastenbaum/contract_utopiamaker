@@ -12,12 +12,18 @@ import * as path from 'path';
 import { TextDecoder } from 'util';
 import { createHash } from 'crypto';
 
+//import { var_dump } from 'dumper';
+const { var_dump } = require('../dist/dumper.js');
+
+
 const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
 const chaincodeName = envOrDefault('CHAINCODE_NAME', 'utopiamaker');
 const mspId = envOrDefault('MSP_ID', 'Org1MSP');
 
 // Path to crypto materials.
-const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
+//const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
+const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve('data','fabric','Utopiamaker','fabric-samples','test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
+
 
 // Path to user private key directory.
 const keyDirectoryPath = envOrDefault('KEY_DIRECTORY_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'keystore'));
@@ -42,8 +48,13 @@ export async function main(): Promise<any> {
     await displayInputParameters();
 
     // The gRPC client connection should be shared by all Gateway connections to this endpoint.
+    console.log('get client');
     const client = await newGrpcConnection();
+	console.log(var_dump(client));
+    //for (var i in client) console.log( ": " + client[i] + "\n");
 
+
+    console.log('get gateway');
     const gateway = connect({
         client,
         identity: await newIdentity(),
@@ -62,16 +73,24 @@ export async function main(): Promise<any> {
             return { deadline: Date.now() + 60000 }; // 1 minute
         },
     });
+	console.log(JSON.stringify(gateway));
 
     try {
         // Get a network instance representing the channel where the smart contract is deployed.
+	console.log('get network');
         const network = gateway.getNetwork(channelName);
+	console.log('get network:');
+	console.log(JSON.stringify(network));
 
         // Get the smart contract from the network.
+	console.log('get contract');
         const contract = network.getContract(chaincodeName);
+	console.log('get contract:');
+	console.log(contract);
 
         // Initialize a set of asset data on the ledger using the chaincode 'InitLedger' function.
-        // await init(contract);
+        await init(contract);
+	console.log('contract inited');
 
         // Return all the current assets on the ledger.
         //await getAllAssets(contract);
@@ -130,9 +149,15 @@ export async function main(): Promise<any> {
 export async function newGrpcConnection(): Promise<grpc.Client> {
     const tlsRootCert = await fs.readFile(tlsCertPath);
     const tlsCredentials = grpc.credentials.createSsl(tlsRootCert);
-    return new grpc.Client(peerEndpoint, tlsCredentials, {
-        'grpc.ssl_target_name_override': peerHostAlias,
-    });
+    console.log('tlsCredentials:'+var_dump(tlsCredentials));
+    console.log('peerEndpoint:'+var_dump(peerEndpoint));
+    console.log('peerHostAlias:'+var_dump(peerHostAlias));
+    console.log('grpc='+var_dump(grpc));
+    var grpc = new grpc.Client(peerEndpoint, tlsCredentials, {
+        'grpc.ssl_target_name_override': peerHostAlias });
+    return(grpc);
+    //return new grpc.Client(peerEndpoint, tlsCredentials, {
+    //    'grpc.ssl_target_name_override': peerHostAlias, });
 }
 
 export async function newIdentity(): Promise<Identity> {
