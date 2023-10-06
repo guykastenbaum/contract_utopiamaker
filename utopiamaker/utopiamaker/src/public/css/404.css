@@ -1,0 +1,18 @@
+.page-404{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.page-404 h1{
+    color: #ffcb74;
+    font-size: 600%;
+    text-align: center;
+};
+
+.page-404 h3{
+    color: #f6f6f6;
+    font-size: 300%;
+    text-align: center;
+}

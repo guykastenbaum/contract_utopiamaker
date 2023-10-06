@@ -9,9 +9,9 @@
 
 
 const stringify  = require('json-stringify-deterministic');
-const sortKeysRecursive  = require('sort-keys-recursive');
+//const sortKeysRecursive  = require('sort-keys-recursive');
 const { Contract } = require('fabric-contract-api');
-
+//const shim = require('fabric-shim'); //notused
 
 
 async function readState(ctx, id) {
@@ -21,15 +21,22 @@ async function readState(ctx, id) {
 	}
 	const assetString = assetBuffer.toString();
 	const asset = JSON.parse(assetString);
+	  if (
+	    asset !== null            &&
+	    typeof asset === 'object' &&
+	    'type' in asset           &&
+	    asset.type === 'Buffer'   &&
+	    'data' in asset           &&
+	    Array.isArray(asset.data)) {
+	    return new Buffer(asset.data);
+	  }
 	return asset;
 }
+
 
 function onlyUnique(value, index, array) {
     return array.indexOf(value) === index;
 }
-
-
-  
 
 
 class Utopiamaker extends Contract {
@@ -37,11 +44,14 @@ class Utopiamaker extends Contract {
     async Init(ctx){
         const initialized = await ctx.stub.getState('initialized');
         if (!initialized || initialized.length === 0) {
-           await ctx.stub.putState('initialized',JSON.stringify({status:'true'}));
-           await ctx.stub.putState('userCount', JSON.stringify({count:0}));
-           await ctx.stub.putState('projectCount', JSON.stringify({count:0}));
-           await ctx.stub.putState('transactionCount', JSON.stringify({count:0}));
-           await ctx.stub.putState('mapEmailToUser',JSON.stringify({}));
+		await ctx.stub.putState('initialized', Buffer.from(stringify({status:true})));
+           await ctx.stub.putState('initialized',Buffer.from(JSON.stringify({status:'true'})));
+           await ctx.stub.putState('userCount',Buffer.from(JSON.stringify({count:0})));
+           await ctx.stub.putState('projectCount',Buffer.from(JSON.stringify({count:0})));
+           await ctx.stub.putState('transactionCount',Buffer.from(JSON.stringify({count:0})));
+           await ctx.stub.putState('mapEmailToUser',Buffer.from(JSON.stringify({})));
+	//shim.success(Buffer.from('Initialized Successfully!'));
+//            throw new Error('the contract was initialized'+initialized);
         } else {
             throw new Error(`Yet the contract was initialized`);
         }
@@ -77,7 +87,7 @@ class Utopiamaker extends Contract {
             projectsContributor: [],
             projectsValidator: []
         };
-        await ctx.stub.putState(id, JSON.stringify(userData));
+        await ctx.stub.putState(id, Buffer.from(JSON.stringify(userData)));
         await ctx.stub.putState('userCount', JSON.stringify({count:newCount}));
         mapEmailToUser[email] = id;
         await ctx.stub.putState('mapEmailToUser', JSON.stringify(mapEmailToUser));
@@ -88,7 +98,7 @@ class Utopiamaker extends Contract {
         if(name == "" || description == ""){
             throw new Error('Name and description cannot be empty');
         }
-        if(timestamp < startDate || startDate > endDate || endDate < 1924992000){
+        if(timestamp < startDate || startDate < endDate || endDate < 1924992000){
             throw new Error('Dates are not valid');
         }
         const queryUserCount = await ctx.stub.getState('userCount');
@@ -163,7 +173,7 @@ class Utopiamaker extends Contract {
         if(projectCountInt < parseInt(projectId.substring(7))){
             throw new Error('Project doesnt exist');
         }
-        if(timestamp > projectData.endDate || timestamp < projectData.startDate){
+        if(timestamp < projectData.endDate || timestamp > projectData.startDate){
             throw new Error('Out of time for project');
         }
         let checkContributor = false;
@@ -174,9 +184,9 @@ class Utopiamaker extends Contract {
                 return false;
             }
         });
-        // if(!checkContributor){
-        //     throw new Error('You are not a contributor');
-        // }
+        if(!checkContributor){
+            throw new Error('You are not a contributor');
+        }
         var currentCount = await readState(ctx, 'transactionCount');
         const newCount = parseInt(currentCount.count)+1;
         const id = 'transaction'.concat(currentCount.count);
@@ -618,6 +628,27 @@ class Utopiamaker extends Contract {
         }
         return query;
     }
+    async Debug(ctx) {
+	//datas={users:{},projects:{},transactions:{}}
+	let datas={}
+        datas.initialized = await readState(ctx, 'initialized');
+        for(let obj of ['user','transaction','project'])
+        {
+          datas[obj+'Count'] = await readState(ctx, obj+'Count')
+          for(let id=0;id<datas[obj+'Count'].count;id++) {
+		//const objid = '' + obj + id
+		//const objbuf = await ctx.stub.getState(objid);
+		//if (objbuf['type'] && objbuf['type'] === 'Buffer')
+		//  datas[objid] = new Buffer(objbuf)
+		//else
+		//	  datas[objid] = objbuf
+		datas[obj+id] = await readState(ctx, obj+id)
+	  }
+	}
+        datas.mapEmailToUser = await readState(ctx, 'mapEmailToUser');
+	return datas;
+    }
+
     
 }
 

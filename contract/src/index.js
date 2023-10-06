@@ -10,7 +10,22 @@ const { main, getInitStatus, createProject, getProjectCount } = require('../dist
 const app = express();
 const port = 4000;
 
-app.use(cors());
+app.use(cors({
+    origin: [
+	'http://localhost',
+	'http://localhost:4000',
+	'http://localhost:3002',
+	'http://fe.utopiamaker.com',
+	'http://fe.utopiamaker.com:3002',
+	'https://fe.utopiamaker.com',
+	'http://bc.utopiamaker.com',
+	'http://bc.utopiamaker.com:3002',
+	'https://bc.utopiamaker.com',
+	'http://be.utopiamaker.com:4000',
+	'https://be.utopiamaker.com'
+    ]
+}));
+
 
 const logger = winston.createLogger({
   level: 'error', // Minimum log level to capture (e.g., error and above)

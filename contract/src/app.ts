@@ -20,10 +20,9 @@ const channelName = envOrDefault('CHANNEL_NAME', 'mychannel');
 const chaincodeName = envOrDefault('CHAINCODE_NAME', 'utopiamaker');
 const mspId = envOrDefault('MSP_ID', 'Org1MSP');
 
-// Path to crypto materials.
-//const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
-const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve('data','fabric','Utopiamaker','fabric-samples','test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
 
+// Path to crypto materials.
+const cryptoPath = envOrDefault('CRYPTO_PATH', path.resolve('data','fabric','Utopiamaker','fabric-samples','test-network', 'organizations', 'peerOrganizations', 'org1.example.com'));
 
 // Path to user private key directory.
 const keyDirectoryPath = envOrDefault('KEY_DIRECTORY_PATH', path.resolve(cryptoPath, 'users', 'User1@org1.example.com', 'msp', 'keystore'));
@@ -39,6 +38,7 @@ const peerEndpoint = envOrDefault('PEER_ENDPOINT', 'localhost:7051');
 
 // Gateway peer SSL host name override.
 const peerHostAlias = envOrDefault('PEER_HOST_ALIAS', 'peer0.org1.example.com');
+
 
 const utf8Decoder = new TextDecoder();
 const assetId = `user${Date.now()}`;
@@ -89,8 +89,8 @@ export async function main(): Promise<any> {
 	console.log(contract);
 
         // Initialize a set of asset data on the ledger using the chaincode 'InitLedger' function.
-        await init(contract);
-	console.log('contract inited');
+//        await init(contract);
+//	console.log('contract inited');
 
         // Return all the current assets on the ledger.
         //await getAllAssets(contract);
@@ -146,9 +146,9 @@ export async function main(): Promise<any> {
 //     process.exitCode = 1;
 // });
 
-export async function newGrpcConnection(): Promise<grpc.Client> {
+async function newGrpcConnection(): Promise<grpc.Client> {
     const tlsRootCert = await fs.readFile(tlsCertPath);
-    const tlsCredentials = grpc.credentials.createSsl(tlsRootCert);
+    const tlsCredentials = await grpc.credentials.createSsl(tlsRootCert);
     console.log('tlsCredentials:'+var_dump(tlsCredentials));
     console.log('peerEndpoint:'+var_dump(peerEndpoint));
     console.log('peerHostAlias:'+var_dump(peerHostAlias));
@@ -157,6 +157,7 @@ export async function newGrpcConnection(): Promise<grpc.Client> {
         'grpc.ssl_target_name_override': peerHostAlias });
     console.log('grpclient='+var_dump(grpclient));
     return(grpclient);
+   
     //return new grpc.Client(peerEndpoint, tlsCredentials, {
     //    'grpc.ssl_target_name_override': peerHostAlias, });
 }
