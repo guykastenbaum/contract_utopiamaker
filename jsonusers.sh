@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ./env.sh
+. ./ env.sh
 
 J=jsonusers.json
 rm jsonusers.log
@@ -9,17 +9,19 @@ curl -o $J https://dbm.utopiamaker.com/api/dbm_usr_list
 fi
 
 N=$(cat $J |jq length)
-N=20
 I=0
+I=22
+N=40
 while [ $I -lt $N ];do
 	#echo $I
-	PASS=$(jq ".[$I].usr_memberid" $J|sha256sum|sed -e 's/ .*$//')
+	MEMBERID=$(jq ".[$I].usr_memberid" $J)
+	PASS=$(echo $MEMBERID|tr -d "\n\r\""|sha256sum|sed -e 's/ .*$//')
 	PARG=$(jq ".[$I]|[.usr_usr,.usr_email,\"$PASS\"]" $J|tr -d "\n")
 	#USER=$(jq ".[$I].usr_usr" $J|xargs echo)
 	#EMAIL=$(cat $J |jq ".[$I].usr_email")
 	#echo pui CreateUser "[\"$USER\",\"$EMAIL\",\"$PASS\"]"
-	echo $I CreateUser "$PARG"
-	echo $I CreateUser "$PARG" >> jsonusers.log
+	echo $I CreateUser "$PARG" $MEMBERID
+	echo $I CreateUser "$PARG" $MEMBERID >> jsonusers.log
 	pui CreateUser "$PARG" >> jsonusers.log 2>&1
 	sleep 2
 	I=$(expr $I + 1)
